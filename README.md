@@ -26,11 +26,11 @@ This project has a specific dependency setup due to `tch-rs` requiring a PyTorch
 
 1.  **Rust:** You need the Rust toolchain installed. If you don't have it, get it from [rustup.rs](https://rustup.rs/).
 2.  **Python:** A recent version of Python (e.g., 3.8+) is required.
-3.  **PyTorch:** We will install PyTorch in a Python virtual environment, which will also download the required C++ library files.
+3.  **PyTorch:** You will need to install PyTorch in a Python virtual environment, which will also download the required C++ library files.
 
 ## Setup and Installation
 
-Follow these steps carefully to configure your environment.
+Follow these steps to configure your environment.
 
 ### 1. Clone the Repository
 
@@ -67,17 +67,17 @@ pip install torch torchvision torchaudio
 
 The `tch-rs` crate finds its dependencies using an environment variable named `LIBTORCH`. You must set this variable to point to the `torch` installation directory within your virtual environment.
 
-**The path will look something like this:** `<project-directory>\.venv\Lib\site-packages	orch`
+**The path will look something like this:** `<project-directory>\.venv\Lib\site-packages\torch`
 
 **To set the variable (for the current session):**
 
 ```powershell
 # On Windows (PowerShell)
 # Make sure to replace <full-path-to-your-project> with the actual absolute path
-$env:LIBTORCH="<full-path-to-your-project>\mini-gpt\.venv\Lib\site-packages\torch"
+$env:LIBTORCH="<full-path-to-your-project>\Mini-GPT-rs\.venv\Lib\site-packages\torch"
 
 # Example:
-# $env:LIBTORCH="C:\Users\YourUser\projects\mini-gpt\.venv\Lib\site-packages\torch"
+# $env:LIBTORCH="C:\Users\YourUser\projects\Mini-GPT-rs\.venv\Lib\site-packages\torch"
 ```
 > **Note:** For a permanent setup, you can add this variable to your system's or user's environment variables through the System Properties dialog.
 
@@ -89,14 +89,14 @@ Once the `LIBTORCH` environment variable is set correctly, you can build and run
 ### Training and Generation
 
 ```bash
-cargo run
+$env:RUSTFLAGS="-C target-feature=+crt-static"; cargo run
 ```
 
 The first time you run it, the application will:
 1. Download the TinyShakespeare dataset
 2. Train a new BPE tokenizer (saved to `data/tokenizer.json`)
 3. Train the model for 50 epochs
-4. Save the trained model to `data/model.pt`
+4. Save the trained model to `data/model_weights`
 5. Enter interactive text generation mode
 
 You should see the training process start, printing the loss every 10 epochs:
@@ -113,12 +113,12 @@ Starting training for 50 epochs...
 Epoch 10 Loss: 7.2134
 Epoch 20 Loss: 6.8432
 ...
-Saving model to data/model.pt...
+Saving model to data/model_weights...
 Model saved successfully!
 Training finished!
 
 === Text Generation Mode ===
-Loading model from data/model.pt...
+Loading model from data/model_weights...
 Model loaded successfully!
 
 Enter your prompt (or 'quit' to exit):
@@ -138,10 +138,10 @@ To be or not to be that is the question...
 If you've already trained a model and just want to generate text:
 
 ```bash
-cargo run -- --skip-training
+$env:RUSTFLAGS="-C target-feature=+crt-static"; cargo run -- --skip-training
 ```
 
-This will load the existing model from `data/model.pt` and go straight to the interactive generation mode.
+This will load the existing model from `data/model_weights` and go straight to the interactive generation mode.
 
 ### Interactive Commands
 
@@ -157,5 +157,5 @@ This will load the existing model from `data/model.pt` and go straight to the in
 - `src/training.rs`: Contains the `train` function with the main training loop and **causal masking** for decoder-only architecture.
 - `src/generation.rs`: Implements text generation with temperature sampling and model loading utilities.
 - `src/data.rs`: Implements the data pipeline. Includes functions to download the dataset, train/load a BPE tokenizer, and generate batches of tokenized text.
-- `data/`: This directory is created automatically. It stores the `tinyshakespeare.txt` dataset, the trained `tokenizer.json`, and the saved model `model.pt`.
+- `data/`: This directory is created automatically. It stores the `tinyshakespeare.txt` dataset, the trained `tokenizer.json`, and the saved model `model_weights`.
 
