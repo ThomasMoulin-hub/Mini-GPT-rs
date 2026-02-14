@@ -2,11 +2,16 @@
 
 A minimal, educational implementation of a GPT-style decoder-only Transformer in Rust, built from scratch using the `tch-rs` (Rust bindings for PyTorch).
 
-This project is intended for learning purposes, demonstrating the core components of a Transformer architecture in a clear and concise Rust codebase.
+This project is intended for learning purposes, demonstrating the core components of a Transformer architecture in a clear and concise Rust codebase, including a data pipeline that tokenizes the "TinyShakespeare" dataset for training.
 
 ## Features
 
 - **Decoder-Only Architecture:** A simple GPT-style model.
+- **Data Pipeline:**
+  - Automatically downloads the "TinyShakespeare" dataset.
+  - Trains a **Byte-Pair Encoding (BPE)** tokenizer from scratch on the dataset.
+  - Caches the trained tokenizer in `data/tokenizer.json`.
+  - Generates batches of real text data for training.
 - **Core Transformer Components:**
   - Scaled Dot-Product Multi-Head Attention
   - Positional Encoding
@@ -31,7 +36,7 @@ Follow these steps carefully to configure your environment.
 
 ```bash
 git clone https://github.com/ThomasMoulin-hub/Mini-GPT-rs.git
-cd mini-gpt-rs
+cd Mini-GPT-rs
 ```
 
 ### 2. Set up the Python Virtual Environment
@@ -69,10 +74,10 @@ The `tch-rs` crate finds its dependencies using an environment variable named `L
 ```powershell
 # On Windows (PowerShell)
 # Make sure to replace <full-path-to-your-project> with the actual absolute path
-$env:LIBTORCH="<full-path-to-your-project>\mini-gpt\.venv\Lib\site-packages	orch"
+$env:LIBTORCH="<full-path-to-your-project>\mini-gpt\.venv\Lib\site-packages\torch"
 
 # Example:
-# $env:LIBTORCH="C:\Users\YourUser\projects\mini-gpt\.venv\Lib\site-packages	orch"
+# $env:LIBTORCH="C:\Users\YourUser\projects\mini-gpt\.venv\Lib\site-packages\torch"
 ```
 > **Note:** For a permanent setup, you can add this variable to your system's or user's environment variables through the System Properties dialog.
 
@@ -85,13 +90,19 @@ Once the `LIBTORCH` environment variable is set correctly, you can build and run
 cargo run
 ```
 
+The first time you run it, the application will download the TinyShakespeare dataset and train a new tokenizer. This might take a moment. The trained tokenizer will be saved to `data/tokenizer.json` for future runs.
+
 You should see the training process start, printing the loss every 10 epochs:
 
 ```
 Starting mini-gpt training...
+Downloading TinyShakespeare dataset...
+Dataset downloaded successfully.
+Training a new tokenizer...
+Tokenizer trained and saved.
 Starting training for 50 epochs...
-Epoch 10 Loss: 10.0712
-Epoch 20 Loss: 9.9419
+Epoch 10 Loss: 7.2134
+Epoch 20 Loss: 6.8432
 ...
 Training finished!
 mini-gpt training finished.
@@ -99,8 +110,9 @@ mini-gpt training finished.
 
 ## Project Structure
 
-- `src/main.rs`: Main entry point, sets up the training configuration and starts the training loop.
+- `src/main.rs`: Main entry point. Orchestrates the data pipeline (downloading, tokenizing) and starts the training loop.
 - `src/model.rs`: Defines the main `Transformer` struct and its overall architecture.
 - `src/layers.rs`: Implements the core Transformer layers (`PositionalEncoding`, `MultiHeadAttention`, `FeedForward`, `TransformerBlock`).
 - `src/training.rs`: Contains the `train` function with the main training loop (data generation, forward pass, loss calculation, backpropagation).
-- `src/data.rs`: Includes simple data generation functions for demonstration purposes.
+- `src/data.rs`: Implements the data pipeline. Includes functions to download the dataset, train/load a BPE tokenizer, and generate batches of tokenized text.
+- `data/`: This directory is created automatically. It stores the `tinyshakespeare.txt` dataset and the trained `tokenizer.json`.
