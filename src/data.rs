@@ -3,8 +3,8 @@ use std::fs;
 use std::path::Path;
 use tch::{Device, Tensor, IndexOp};
 use tokenizers::models::bpe::BPE;
-use tokenizers::normalizers::Strip;
-use tokenizers::pre_tokenizers::whitespace::Whitespace;
+use tokenizers::pre_tokenizers::byte_level::ByteLevel;
+use tokenizers::decoders::byte_level::ByteLevel as ByteLevelDecoder;
 use tokenizers::models::bpe::BpeTrainer;
 use tokenizers::models::TrainerWrapper;
 use tokenizers::Tokenizer;
@@ -37,12 +37,17 @@ pub fn train_and_save_tokenizer_if_needed() -> Result<()> {
     if !Path::new(TOKENIZER_FILE).exists() {
         println!("Training a new tokenizer...");
         let mut tokenizer = Tokenizer::new(BPE::default());
-        tokenizer.with_normalizer(Some(Strip::new(true, true)));
-        tokenizer.with_pre_tokenizer(Some(Whitespace::default()));
+
+        // Use ByteLevel pre-tokenizer to preserve spaces and all characters
+        // This ensures spaces are included in the vocabulary
+        tokenizer.with_pre_tokenizer(Some(ByteLevel::default()));
+
+        // Use ByteLevel decoder to properly decode spaces
+        tokenizer.with_decoder(Some(ByteLevelDecoder::default()));
 
         let trainer = BpeTrainer::builder()
             .vocab_size(1000)
-            .min_frequency(25000)
+            .min_frequency(2)  // Reduced from 25000 to allow more tokens
             .build();
         let mut trainer = TrainerWrapper::from(trainer);
         let content = fs::read_to_string(DATASET_FILE)?;

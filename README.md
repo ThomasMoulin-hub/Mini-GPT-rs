@@ -86,15 +86,24 @@ $env:LIBTORCH="<full-path-to-your-project>\mini-gpt\.venv\Lib\site-packages\torc
 
 Once the `LIBTORCH` environment variable is set correctly, you can build and run the project using Cargo.
 
+### Training and Generation
+
 ```bash
 cargo run
 ```
 
-The first time you run it, the application will download the TinyShakespeare dataset and train a new tokenizer. This might take a moment. The trained tokenizer will be saved to `data/tokenizer.json` for future runs.
+The first time you run it, the application will:
+1. Download the TinyShakespeare dataset
+2. Train a new BPE tokenizer (saved to `data/tokenizer.json`)
+3. Train the model for 50 epochs
+4. Save the trained model to `data/model.pt`
+5. Enter interactive text generation mode
 
 You should see the training process start, printing the loss every 10 epochs:
 
 ```
+=== Mini-GPT Rust ===
+
 Starting mini-gpt training...
 Downloading TinyShakespeare dataset...
 Dataset downloaded successfully.
@@ -104,15 +113,49 @@ Starting training for 50 epochs...
 Epoch 10 Loss: 7.2134
 Epoch 20 Loss: 6.8432
 ...
+Saving model to data/model.pt...
+Model saved successfully!
 Training finished!
-mini-gpt training finished.
+
+=== Text Generation Mode ===
+Loading model from data/model.pt...
+Model loaded successfully!
+
+Enter your prompt (or 'quit' to exit):
+Commands:
+  quit - Exit the program
+  clear - Clear screen
+
+> To be or not to be
+Generating 100 tokens...
+..........
+Generated text:
+To be or not to be that is the question...
 ```
+
+### Skip Training (Use Existing Model)
+
+If you've already trained a model and just want to generate text:
+
+```bash
+cargo run -- --skip-training
+```
+
+This will load the existing model from `data/model.pt` and go straight to the interactive generation mode.
+
+### Interactive Commands
+
+- Type any text prompt to generate a continuation
+- `quit` or `exit` - Exit the program
+- `clear` - Clear the screen
 
 ## Project Structure
 
-- `src/main.rs`: Main entry point. Orchestrates the data pipeline (downloading, tokenizing) and starts the training loop.
+- `src/main.rs`: Main entry point. Orchestrates training and interactive text generation.
 - `src/model.rs`: Defines the main `Transformer` struct and its overall architecture.
 - `src/layers.rs`: Implements the core Transformer layers (`PositionalEncoding`, `MultiHeadAttention`, `FeedForward`, `TransformerBlock`).
-- `src/training.rs`: Contains the `train` function with the main training loop (data generation, forward pass, loss calculation, backpropagation).
+- `src/training.rs`: Contains the `train` function with the main training loop and **causal masking** for decoder-only architecture.
+- `src/generation.rs`: Implements text generation with temperature sampling and model loading utilities.
 - `src/data.rs`: Implements the data pipeline. Includes functions to download the dataset, train/load a BPE tokenizer, and generate batches of tokenized text.
-- `data/`: This directory is created automatically. It stores the `tinyshakespeare.txt` dataset and the trained `tokenizer.json`.
+- `data/`: This directory is created automatically. It stores the `tinyshakespeare.txt` dataset, the trained `tokenizer.json`, and the saved model `model.pt`.
+
